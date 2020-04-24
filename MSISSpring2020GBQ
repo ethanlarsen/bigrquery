@@ -1,0 +1,110 @@
+-- Google Big Query Main Queries for Customer Tables, RGP, Cleaned Data, and Email info
+
+-- Cleaned on billDate and current customers
+SELECT CUSTOMER_ID,
+FIRSTNAME,
+LASTNAME,
+MIDDLENAME,
+CUSTOMER_TYPE,
+BARCODE,
+RESPONSIBLE_PARTY_ID,
+ADDRESS1,
+ADDRESS2,
+BANK_ACCOUNT,
+BANK_NAME,
+BANK_ROUTE,
+BANK_ACCOUNTTYPE,
+CELL_PHONE,
+CITY,
+CREDIT_CARD,
+CREDIT_CARD_EXP,
+FACILITY_WAIVER,
+BELAY_CERTIFIED,
+EMAIL,
+ALT_ONLINE_ACCT_EMAIL,
+EMERGENCY_CONTACT,
+EMERGENCY_PHONE,
+MEMBERSHIP_EXP_DATE,
+MEMBERSHIP_START_DATE,
+FIRST_CONTACT_DATE,
+MEMBERSHIP_FORM_OF_PAYMENT,
+HOME_PHONE,
+LAST_BILLED_DATE,
+LAST_RECORD_EDIT,
+STATE,
+WORK_PHONE,
+ZIP,
+CURRENT_STATUS,
+EFT_DUES_AMOUNT,
+LAST_VISIT_DATE,
+NEXT_BILL_DATE,
+STAFF_PASSWORD,
+STAFF_ACCESS_LEVEL,
+STAFF_IS_INACTIVE,
+STAFF_APHELION_NAME,
+STAFF_MANAGER_REPORTING_FACILITY_LIST,
+BDAY,
+IS_BILLABLE,
+EARLY_IN_MEMBER,
+FACILITY_WAIVER_DATE,
+PUNCH_CUSTOMER_ID,
+PUNCH_CARD_TYPE,
+EFT_CONTRACT_END_DATE,
+EXCLUDE_FROM_BILLING,
+EXTRA_PRODUCT_ID_LIST,
+EXTRA_DUES_AMOUNT_LIST,
+COUNTRY,
+BOULDERING_ONLY,
+GEAR_INCLUDED,
+IMPORT_SET,
+MEMBERSHIP_CANNOT_BE_FROZEN,
+MEMBER_NOCHECKIN_JUSTBILL,
+CUSTOMER_CUSTOM_TYPE,
+FACILITY_ID,
+FACILITY_ACCESS_TYPE,
+XW_ALIAS_XWEBID,
+XW_ALIAS,
+XW_MASKED_CC,
+XW_CARDTYPE,
+MANUAL_BILLING,
+RENTAL_GEAR_UNTIL,
+GUID,
+ARCHIVED,
+GENDER,
+DUES_CHANGE_DATE,
+DUES_CHANGE_AMOUNT,
+DO_NOT_MAIL,
+CUSTOM_TEXT1,
+CUSTOM_TEXT2,
+SPENDING_LIMIT,
+DUES_CHANGE_TEMPMONTHS,
+WANTS_MONTHLY_BILLING_EMAIL,
+ALT_FREEZE_FEE,
+FACILITY_ACCESS_ADDITIONAL_GYMS,
+ONLINE_PORTAL_USER_ID,
+NO_CHECKIN_PRIORTO_DATE,
+HOME_LOCATION_TAG FROM `front-data-production.rgp_landing_zone.customers_frontslc` where current_status='OK' and NEXT_BILL_DATE is not null and EFT_CONTRACT_END_DATE is not null and RENTAL_GEAR_UNTIL is not null;
+
+--customer_bridge
+SELECT 
+customer_id, firstname, middlename, lastname, gender, city, state, current_status,
+membership_start_date, last_visit_date,
+DATE_DIFF(last_visit_date, membership_start_date, month) 
+AS membership_months 
+FROM front-data-production.rgp_landing_zone.customers_frontslc;
+
+-- Mail_RGP_Email.Join
+select * from mailchimp.mailchimp_listmembers_front as t1
+join rgp_landing_zone.membership_analysis_frontslc as t2 on t1.emailaddress = t2.email;
+
+--no_tr_no_lead
+SELECT * FROM `front-data-production.rgp_landing_zone.customers_frontslc` 
+where policy3_date is null 
+and policy4_date is null
+and email != ''
+order by membership_start_date desc limit 50
+
+--SM_MC_RGP_joined
+select t1.*,t2.*,t3.Respondent_ID,t3.Collector_ID,t3.End_Date,t3.IP_Address,t3.First_Name,t3.Last_Name,t3.Cust_Data1,t3.Satisfaction,t3.Satisfaction_Something_New,t3.Satisfaction_Stay_Fit,t3.Satisfaction_Improve_Climbing,t3.Satisfaction_Social_Scene,t3.Satisfaction_Indoor_Training,t3.Satisfaction_Yoga_GroupFitness,t3.Satisfaction_Other,t3.Churn_Affordability,t3.Churn_Another_Gym,t3.Churn_Relocate,t3.Churn_Poor_Facility,t3.Churn_Poor_Staff,t3.Churn_Infrequent_Membership,t3.Churn_Other,t3.Route_Enhance_Training,t3.Route_Enhance_Technique,t3.Route_Enhance_Progress,t3.Route_WarmUp,t3.Route_Project,t3.Route_Challenge,t3.Route_Improvement,t3.Route_Grades,t3.Route_Experience,t3.Route_Atmosphere,t3.Route_Difficulty,t3.Route_Clean,t3.Route_Safe,t3.Route_Suitability,t3.Adequate_Equipment,t3.Adequate_Pads,t3.Adequate_Space,t3.Adequate_Gear,t3.Adequate_Hours,t3.Adequate_Location,t3.Improvement,t3.Staff_Teamwork,t3.Staff_Knowledge,t3.Staff_Availability,t3.Staff_Friendliness_,t3.Staff_Suggestions,t3.Staff_Improvements,t3.Membership_Price,t3.Membership_Promise,t3.Mebership_Setup,t3.Membership_Cancel,t3.Membership_Passes,t3.Membership_Comments,t3.Member_Experience_Years,t3.Member_Bouldering_Start,t3.Member_Bouldering_End,t3.Member_Climing_Start,t3.Member_Climing_End,t3.Member_Length,t3.Member_Other,t3.Services_Bouldering,t3.Services_Top_Rope,t3.Services_Lead_Climbing,t3.Services_Yoga,t3.Services_Pilates,t3.Services_Group_Fitness,t3.Services_Weights,t3.Services_Cardio_Machines,t3.Services_Showers,t3.Services_Lockers,t3.Services_Retail_Store,t3.Services_Internet,t3.Services_Dog_Run,t3.Services_Recycling_Programs,t3.Services_Other,t3.Age_Range,t3.Gender,t3.Join_Again,t3.Cust_Full_Name from mailchimp.mailchimp_listmembers_front as t1
+join rgp_landing_zone.membership_analysis_frontslc as t2 on t1.emailaddress = t2.email 
+join surveymonkey.member_exit_survey_SLC as t3 on concat(t2.FIRSTNAME," ",t2.LASTNAME)= t3.Cust_Full_Name
